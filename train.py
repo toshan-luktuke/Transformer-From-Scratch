@@ -5,11 +5,15 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from dataset import BilingualDataset, causal_mask
 from model import build_transformer
 
+from config import get_config, get_weights_file_path
+
 from datasets import load_dataset
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
+
+from torch.utils.tensorboard import SummaryWriter 
 
 from pathlib import Path
 
@@ -72,3 +76,31 @@ def get_model(config, vocab_src_len, vocab_tgt_len):
     )
 
     return model
+
+def train_model(config):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f'Using device: {device}')
+
+    Path(config["model_folder"]).mkdir(parents=True, exist_ok=True)
+
+    train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt = get_ds(config)
+    model = get_model(config, tokenizer_src.get_vocab_size(), tokenizer_tgt.get_vocab_size()).to(device)
+
+    # Tensorboard
+    writer = SummaryWriter(config['experiment_name'])
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], eps=1e-9)
+
+    initial_epoch = 0
+    global_step = 0
+    if config['preload'] is not None:
+        model_filename = get_weights_file_path(config, config['preload'])
+        print(f"Preloading model from {model_filename}")
+        state = torch.load(model_filename)
+        initial_epoch = state['epoch'] + 1
+        optimizer.load_state_dict(state['optimizer_state_dict'])
+        global_step = state['global_step']
+
+    loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_tgt.token_to_id("[PAD]"))
+        
+
