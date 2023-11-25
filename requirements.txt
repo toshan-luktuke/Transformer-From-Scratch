@@ -1,0 +1,6 @@
+torchtext
+datasets
+tokenizers
+torchmetrics
+tensorboard
+altair
