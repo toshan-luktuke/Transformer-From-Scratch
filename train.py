@@ -70,8 +70,8 @@ def get_ds(config):
 
 def get_model(config, vocab_src_len, vocab_tgt_len):
     model = build_transformer(
-        vocab_size_src=vocab_src_len,
-        vocab_size_tgt=vocab_tgt_len,
+        src_vocab_size=vocab_src_len,
+        tgt_vocab_size=vocab_tgt_len,
         src_seq_len=config['seq_len'],
         tgt_seq_len=config['seq_len'],
         d_model=config['d_model'],
@@ -131,7 +131,7 @@ def train_model(config):
             writer.add_scalar("Train loss", loss.item(), global_step)
             writer.flush()
 
-            loss.backwards()
+            loss.backward()
 
             optimizer.step()
             optimizer.zero_grad()

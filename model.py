@@ -25,7 +25,7 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(seq_len, d_model)
         # Create a vector of shape (seq_len)
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arrange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
         ## Apply the sin to even positions
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
@@ -69,7 +69,7 @@ class FeedForwardBlock(nn.Module):
     
 class MultiHeadAttention(nn.Module):
 
-    def __inti__(self, d_model: int, h: int, dropout: float):
+    def __init__(self, d_model: int, h: int, dropout: float):
         super().__init__()
         self.d_model = d_model
         self.h = h
@@ -102,8 +102,8 @@ class MultiHeadAttention(nn.Module):
         value = self.w_v(v)
         # (Batch, seq_len, d_model) --> (Batch, seq_len, h, d_k) --> (Batch, h, seq_len, d_k)
         query = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1, 2)
-        key = query.view(key.shape[0], key.shape[1], self.h, self.d_k).transpose(1, 2)
-        value = query.view(value.shape[0], value.shape[1], self.h, self.d_k).transpose(1, 2)
+        key = key.view(key.shape[0], key.shape[1], self.h, self.d_k).transpose(1, 2)
+        value = value.view(value.shape[0], value.shape[1], self.h, self.d_k).transpose(1, 2)
 
         x, self.attention_scores = MultiHeadAttention.attention(query, key, value, mask, self.dropout)
 
